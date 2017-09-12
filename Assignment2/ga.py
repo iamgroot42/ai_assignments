@@ -12,7 +12,7 @@ class GeneticAlgorithm:
 		cost = [ self.weights[i][permutation[i]] for i in range(self.weights.shape[0])]
 		return sum(cost)
 
-	def siblings(self, permA, permB):
+	def siblings(self, permA, permB, mementic=None):
 		child1 = list(permA[:len(permA)/2])
 		child2 = list(permB[:len(permB)/2])
 		parentA = list(set(list(permA)) - set(list(child2)))
@@ -23,9 +23,20 @@ class GeneticAlgorithm:
 			child2.append(parentA[i])
 		child1 = np.array(child1)
 		child2 = np.array(child2)
-		np.random.shuffle(child1)
-		np.random.shuffle(child2)
+		if  mementic:
+			costs = []
+			indices = []
+			for _ in range(50):
+				indices.append(np.random.choice(len(child1),len(child1),replace=False))
+				costs.append(self.permutation_weight(child1[indices[-1]]))
+			top_2 = np.argsort(costs)[::-1][:2]
+			child1 = child1[indices[top_2[0]]]
+			child2 = child2[indices[top_2[1]]]
+		else:
+			np.random.shuffle(child1)
+                        np.random.shuffle(child2)	
 		return child1, child2
+
 
 	def combine(self, permutations):
 		new_permutations = []
@@ -33,19 +44,9 @@ class GeneticAlgorithm:
 		mothers = np.take(permutations, parents[:len(permutations)/2], axis=0)
 		fathers = np.take(permutations, parents[len(permutations)/2:], axis=0)
 		for i in range(len(mothers)):
-			sister, brother = self.siblings(mothers[i], fathers[i])
+			sister, brother = self.siblings(mothers[i], fathers[i], True)
 			new_permutations.append(sister)
 			new_permutations.append(brother)
-			#random_ratio = np.random.random() * 0.5 + 0.25
-			#selected_genes = np.random.choice(len(mothers[i]), int(len(mothers[i])*random_ratio),replace=False)
-			#Sister
-			#temp_perm = np.array(fathers[i])
-			#temp_perm[selected_genes] = mothers[i][selected_genes]
-			#new_permutations.append(temp_perm)
-			#Brother
-			#temp_perm = np.array(mothers[i])
-                        #temp_perm[selected_genes] = fathers[i][selected_genes]
-                        #new_permutations.append(temp_perm)
 		return np.concatenate((permutations, np.array(new_permutations)))
 
 
