@@ -1,18 +1,29 @@
 import numpy as np
 from tqdm import tqdm
 
+
 class GeneticAlgorithm:
-	def __init__(self, weights, pop_size, num_iters, selection_ratio):
+	def __init__(self, weights, pop_size, num_iters, selection_ratio, mementic=False, minimize=False):
 		self.pop_size = pop_size
 		self.num_iters = num_iters
 		self.selection_ratio = selection_ratio
 		self.weights = weights
+		self.mementic = mementic
+		self.minimize = minimize
 
-	def permutation_weight(self, permutation):
-		cost = [ self.weights[i][permutation[i]] for i in range(self.weights.shape[0])]
-		return sum(cost)
+	def weight_function(self, permutation,tsp=False):
+		if tsp:
+			assert(len(permutation) == self.weights.shape[0])
+	                cost = 0
+        	        for i in range(1,len(permutation)):
+                	        cost += self.weights[permutation[i]][permutation[i-1]]
+	                cost += self.weights[permutation[-1]][permutation[0]]
+	                return cost
+		else:
+			cost = [ self.weights[i][permutation[i]] for i in range(self.weights.shape[0])]
+			return sum(cost)
 
-	def siblings(self, permA, permB, mementic=None):
+	def siblings(self, permA, permB, mementic=False):
 		child1 = list(permA[:len(permA)/2])
 		child2 = list(permB[:len(permB)/2])
 		parentA = list(set(list(permA)) - set(list(child2)))
@@ -28,13 +39,16 @@ class GeneticAlgorithm:
 			indices = []
 			for _ in range(50):
 				indices.append(np.random.choice(len(child1),len(child1),replace=False))
-				costs.append(self.permutation_weight(child1[indices[-1]]))
-			top_2 = np.argsort(costs)[::-1][:2]
+				costs.append(self.weight_function(child1[indices[-1]]))
+			if self.minimize:
+				top_2 = np.argsort(costs)[:2]
+			else:
+				top_2 = np.argsort(costs)[::-1][:2]
 			child1 = child1[indices[top_2[0]]]
 			child2 = child2[indices[top_2[1]]]
 		else:
 			np.random.shuffle(child1)
-                        np.random.shuffle(child2)	
+                        np.random.shuffle(child2)
 		return child1, child2
 
 
@@ -44,7 +58,7 @@ class GeneticAlgorithm:
 		mothers = np.take(permutations, parents[:len(permutations)/2], axis=0)
 		fathers = np.take(permutations, parents[len(permutations)/2:], axis=0)
 		for i in range(len(mothers)):
-			sister, brother = self.siblings(mothers[i], fathers[i], True)
+			sister, brother = self.siblings(mothers[i], fathers[i], self.mementic)
 			new_permutations.append(sister)
 			new_permutations.append(brother)
 		return np.concatenate((permutations, np.array(new_permutations)))
@@ -59,16 +73,22 @@ class GeneticAlgorithm:
 		# Across iterations of evolution
 		for _ in tqdm(range(self.num_iters)):
 			# Calculate costs for all permutations
-			permutation_weights = np.array([self.permutation_weight(x) for x in permutations])
+			permutation_weights = np.array([self.weight_function(x) for x in permutations])
 			# Pick the top selection_ratio permutations for repopulation
-			permutations = np.take(permutations, np.argsort(permutation_weights)[::-1][:int(self.selection_ratio * len(permutations))], axis=0)
+			if self.minimize:
+				permutations = np.take(permutations, np.argsort(permutation_weights)[:int(self.selection_ratio * len(permutations))], axis=0)
+			else:
+				permutations = np.take(permutations, np.argsort(permutation_weights)[::-1][:int(self.selection_ratio * len(permutations))], axis=0)
 			# Repopulate and add new permutations
 			permutations = self.combine(permutations)
-		
 		# Pick the best permutation and return it
-		permutation_weights = np.array([self.permutation_weight(x) for x in permutations])
-		optimal_permutation = np.take(permutations, np.argsort(permutation_weights), axis=0)[-1]
-		return permutation_weights.max(), optimal_permutation
+		permutation_weights = np.array([self.weight_function(x) for x in permutations])
+		if self.minimize:
+			optimal_permutation = np.take(permutations, np.argsort(permutation_weights), axis=0)[0]
+			return permutation_weights.min(), optimal_permutation
+		else:
+			optimal_permutation = np.take(permutations, np.argsort(permutation_weights), axis=0)[-1]
+			return permutation_weights.max(), optimal_permutation
 
 
 def process_data(filepath):
