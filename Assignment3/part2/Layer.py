@@ -29,4 +29,3 @@ class Layer():
 	def forward(self, input_data):
 		self.output = input_data * self.weights
 		return self.activation.func(self.output)
-
