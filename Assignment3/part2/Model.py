@@ -8,7 +8,7 @@ from Layer import Layer
 
 
 class Model():
-	def __init__(self, error, learning_rate = 1e-3, gamma = 0.5, batch_size = 128, max_iters=10):
+	def __init__(self, error, learning_rate = 1e-3, gamma = 0.5, batch_size = 128, max_iters=3):
 		self.layers = []
 		self.error = error
 		self.max_iters = max_iters
@@ -78,8 +78,6 @@ class Model():
 			total_error /= float(num_iters)
 			training_accuracy += total_error
 			num_batches += 1
-			if verbose:
-				print "Accuracy for this batch", (1-total_error) * 100, "%"
 		if verbose:
 			# Plot scores across iterations
 	                plt.figure()
@@ -87,7 +85,7 @@ class Model():
 	                plt.ylim([0.0, 1.05])
 	                plt.xlabel('Iteration')
 	                plt.ylabel('Accuracy')
-	                plt.title('Training accuracy: ' + str(training_accuracy / float(num_batches)))
+	                plt.title('Training accuracy: ' + str(1 - training_accuracy / float(num_batches)))
 	                plt.legend(loc="lower right")
 	                plt.show()
 	                plt.savefig("training.png")

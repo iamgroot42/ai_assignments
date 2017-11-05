@@ -1,5 +1,4 @@
 import numpy as np
-np.random.seed(42)
 
 from keras.datasets import mnist
 from keras.utils import np_utils
@@ -31,7 +30,7 @@ def process_data():
 
 def single_layer(X_train, X_test, y_train, y_test, verbose=False):
 	m = Model(Error())
-	m.add_layer(Layer((784,10), SoftMax(), 'fanin'))
+	m.add_layer(Layer((784,10), SoftMax(), 'faninout'))
 	t_acc = (1-m.train(X_train, y_train, verbose)) * 100
 	print "Train accuracy", t_acc, "%"
 	print "Test accuracy", (1-m.test(X_test, y_test)) * 100, "%"
@@ -42,9 +41,9 @@ def multi_layer(X_train, X_test, y_train, y_test, verbose=False):
 	learning_rate = 1e-2
 	momentum_rate = 0.25
 	m = Model(Error(), learning_rate, momentum_rate, batch_size)
-	m.add_layer(Layer((784,100), ReLU(), 'fanin'))
+	m.add_layer(Layer((784,700), ReLU(), 'fanin'))
 	# m.add_layer(Layer((784,100), ReLU()))
-	m.add_layer(Layer((100,10), SoftMax(), 'fanin'))
+	m.add_layer(Layer((700,10), SoftMax(), 'fanin'))
 	t_acc = (1-m.train(X_train, y_train, verbose)) * 100
 	print "Train accuracy", t_acc, "%"
 	print "Test accuracy", (1-m.test(X_test, y_test)) * 100, "%"
@@ -52,5 +51,5 @@ def multi_layer(X_train, X_test, y_train, y_test, verbose=False):
 
 if __name__ == "__main__":
 	(X_train, y_train), (X_test, y_test) = process_data()
-	#multi_layer(X_train, X_test, y_train, y_test, False)
-	single_layer(X_train, X_test, y_train, y_test, True)
+	multi_layer(X_train, X_test, y_train, y_test, True)
+	#single_layer(X_train, X_test, y_train, y_test, True)

@@ -115,12 +115,12 @@ def plotROC(svm, X, Y, prefix, configuration, n_classes=2):
 	plt.title(prefix + " " + configuration)
 	plt.legend(loc="lower right")
 	plt.show()
-	plt.savefig(prefix + " " + configuration + ".png")
+	plt.savefig(prefix + " " + configuration + "_roc.png")
 
 
 # Pick the SVM that performs best
 def bestSVM(X, Y, n_val=4):
-	C = [1e-5, 1e-4, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4, 1e5, np.inf]
+	C = [1e-5, 1e-4, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4] #, 1e5, np.inf]
 	kernels = ['rbf', 'linear']
 	xtr, ytr, xte, yte = data_split(X, Y, 0.8)
 	scores = {}
