@@ -17,24 +17,47 @@ class gridenv(object):
 	def resetEnv(self):
 		self.grid = np.zeros((self.GRID_SIZE,self.GRID_SIZE))
 		self.frames = np.zeros((4,5,5))
-		
-	def defineHeuristic(self):
-		self.hueuristicgrid = np.array([[6,5,4,3,0],[5,4,3,2,0],[4,3,2,1,0],[3,2,1,0,0],[3,2,1,0,0]])
 
-	def get_reward(self, x, y):
-		return -1 * (self.hueuristicgrid[x][y])
+	def defineHeuristic(self):
+		self.hueuristicgrid = np.zeros((self.GRID_SIZE, self.GRID_SIZE))
+		for i in range(self.GRID_SIZE):
+			for j in range(self.GRID_SIZE):
+				self.hueuristicgrid[i, j] = 2 * (self.GRID_SIZE - 1) - (i + j)
+
+	def get_reward(self, location):
+		reward = 0
+		location = self.grid[location[1], location[0]]
+		if location == goal:
+			reward = 10
+		elif location == safe:
+			reward = -1*(self.hueuristicgrid[self.ploc[1],self.ploc[0]])
+		elif location == wall:
+			reward = -10
+		else:
+			self.reward = -1*(self.hueuristicgrid[self.ploc[1],self.ploc[0]])
+
+		return reward
 
 	def returnFrames(self):
 		return np.array(self.frames)
-	
-	def initDeterministicgrid(self):
-		
+
+	def reset_state(self, ploc, grid):
+		self.ploc = ploc
+		self.grid = grid
+
+	def initDeterministicgrid(self, other_grid=1):
 		self.defineHeuristic()
 	
 		self.no_walls = 3
-		self.walls = [(1,1),(2,2),(1,3)]
+
+		if other_grid == 1:
+			self.walls = [(1,1),(2,2),(1,3)]
+		elif other_grid == 1:
+			self.walls = [(1,2),(4,1),(3,3)]
+		else:
+			self.walls = [(1,1),(1,2),(2,2),(1,3),(3,3),(4,1)]
 		self.ploc = [0,0]
-		self.goalloc = [3,3]
+		self.goalloc = [self.GRID_SIZE-1,self.GRID_SIZE-1]
 		
 		for wall_ in self.walls:
 			self.grid[wall_[1],wall_[0]] = wall
@@ -56,7 +79,7 @@ class gridenv(object):
 		for x in range(4):
 			self.frames[x,] = self.grid
 			
-		return self.grid
+		return self.ploc, self.grid
 		
 	def initProbalisticgrid(self,prob=0.1):
 		
@@ -86,7 +109,7 @@ class gridenv(object):
 		for x in range(4):
 			self.frames[x,] = np.copy(self.grid)
 		
-		return self.frames
+		return self.ploc, self.frames
 	
 	def get_action_state(self, state, action):
 
@@ -146,7 +169,7 @@ class gridenv(object):
 				tmp = 3
 			else: 
 				notAllowedLoc = 1
-				
+
 		if prevValue == goal:  # if new player cell is goal
 			self.grid[self.ploc[1],self.ploc[0]] = 3
 			self.reward = 10
@@ -184,5 +207,4 @@ class gridenv(object):
 
 		self.frames[0:3,] = np.copy(self.frames[1:4,])
 		self.frames[3,] = np.copy(self.grid)
-		print (self.ploc)
-		return self.grid, self.reward, self.game_over
+		return self.ploc, self.grid, self.reward, self.game_over

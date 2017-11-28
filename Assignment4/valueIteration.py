@@ -12,7 +12,6 @@ class ValueIteration:
 		self.actions = np.arange(4)
 
 	def oneIteration(self):
-		new_v_table = np.zeros(self.v_table.shape)
 		delta = 0
 		# For all states:
 		for i in range(self.grid.shape[0]):
@@ -20,11 +19,10 @@ class ValueIteration:
 				terms = []
 				for action in self.actions:
 					s_ = self.env.get_action_state((i,j), action)
-					terms.append((self.env.get_reward(s_[0], s_[1]) +  self.gamma * self.v_table[s_[0], s_[1]]) * ( 1 / float(len(self.actions))))
+					terms.append((self.env.get_reward(s_) +  self.gamma * self.v_table[s_[0], s_[1]]) * ( 1 / float(len(self.actions))))
 				a_optimal = max(terms)
 				delta = max(delta, np.abs(a_optimal - self.v_table[i,j]))
-				new_v_table[i,j] = a_optimal
-		self.v_table = new_v_table
+				self.v_table[i,j] = a_optimal
 		return delta
 		
 	def runIterations(self):
@@ -33,3 +31,19 @@ class ValueIteration:
 			delta = self.oneIteration()
 			print delta
  
+ 	def run_agent(self, ploc, env):
+ 		game_over = False
+ 		total_reward = 0
+ 		steps = 0
+ 		while not game_over:
+ 			terms = []
+ 			for action in self.actions:
+				s_ = env.get_action_state((ploc[0],ploc[1]), action)
+				terms.append(self.v_table[s_[0], s_[1]])
+			best_action = np.argmax(terms)
+ 			ploc, _, reward, game_over = env.frame_step(best_action)
+ 			steps += 1
+ 			print ploc
+ 			# print env.grid
+ 			total_reward += reward
+ 		return steps, total_reward
