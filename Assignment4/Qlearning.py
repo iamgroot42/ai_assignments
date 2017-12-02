@@ -8,47 +8,52 @@ class Qlearning:
 		self.Q_table = np.zeros(grid.shape + (4,))
 		self.env = env
 		self.grid = grid
-		self.gamma = gamma
-		self.epsilon = 1.0
+		self.gamma = 0.5
+		self.epsilon = 0.2
 		self.learning_rate = learning_rate
 		self.actions = np.arange(4)
 		self.nb_episodes = nb_episodes
 		self.max_steps = 100
 
 	def runIterations(self):
-		grid = np.copy(self.env.grid)
-		starting_ploc = np.copy(self.env.ploc)
 		rewards = []
 		for i in tqdm(range(self.nb_episodes)):
 			episode_reward = 0
-			self.env.grid = np.copy(grid)
-			ploc = np.copy(starting_ploc)
 			game_over = False
 			for _ in range(self.max_steps):
 				if game_over:
 					break
 				best_action = None
+				ploc = self.env.ploc
+				y, x = ploc
+				# print self.env.ploc
 				if np.random.rand() < self.epsilon:
 					best_action = np.random.choice(self.actions, 1)[0]
 				else:
-					best_action = np.argmax(self.Q_table[ploc[0], ploc[1], :])
+					best_action = np.argmax(self.Q_table[ploc[1], ploc[0], :])
 				new_ploc, _, reward, game_over = self.env.frame_step(best_action)
-				best_action_ = np.argmax(self.Q_table[new_ploc[0], new_ploc[1], :])
+				best_action_ = np.argmax(self.Q_table[new_ploc[1], new_ploc[0], :])
 				episode_reward += reward
-				self.Q_table[ploc[0], ploc[1], best_action] += self.learning_rate * (reward	
-							+ self.gamma * self.Q_table[new_ploc[0], new_ploc[1], best_action_] - self.Q_table[ploc[0], ploc[1], best_action])
+				# print reward
+				self.Q_table[x, y, best_action] += self.learning_rate * (reward
+							+ self.gamma * self.Q_table[new_ploc[1], new_ploc[0], best_action_] - self.Q_table[x, y, best_action])
 				ploc = new_ploc
 			rewards.append(episode_reward)
-			self.env.reset_state(ploc, grid)
+			self.env.resetEnv()
+			# return rewards
 		return rewards
- 
+
  	def run_agent(self, ploc, env):
  		game_over = False
  		total_reward = 0
  		steps = 0
- 		while True:
-			best_action = np.argmax(self.Q_table[ploc[0], ploc[1], :])
- 			ploc, _, reward, game_over = env.frame_step(best_action)
+ 		while not game_over:
+ 			print env.ploc
+			best_action = np.argmax(self.Q_table[ploc[1], ploc[0], :])
+ 			ploc, grid, reward, game_over = env.frame_step(best_action)
  			steps += 1
  			total_reward += reward
+ 			print reward
+ 			if ploc == self.env.goalloc:
+ 				break
  		return total_reward, steps

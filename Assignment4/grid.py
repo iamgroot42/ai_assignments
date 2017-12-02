@@ -25,17 +25,19 @@ class gridenv(object):
 				self.hueuristicgrid[i, j] = 2 * (self.GRID_SIZE - 1) - (i + j)
 
 	def get_reward(self, location):
+		print location
 		reward = 0
 		location = self.grid[location[1], location[0]]
 		if location == goal:
-			reward = 10
+			reward = 300
 		elif location == safe:
-			reward = -1*(self.hueuristicgrid[self.ploc[1],self.ploc[0]])
+			reward=0
+			# reward = -1*(self.hueuristicgrid[self.ploc[1],self.ploc[0]])
 		elif location == wall:
-			reward = -10
+			reward = -100
 		else:
-			self.reward = -1*(self.hueuristicgrid[self.ploc[1],self.ploc[0]])
-
+			# reward = -1*(self.hueuristicgrid[self.ploc[1],self.ploc[0]])
+			reward=0
 		return reward
 
 	def returnFrames(self):
@@ -63,16 +65,8 @@ class gridenv(object):
 			self.grid[wall_[1],wall_[0]] = wall
 		
 		self.grid[self.goalloc[1],self.goalloc[0]] = goal
-		
-		tmp_p = False
-		while(tmp_p!=True):
-			px = np.random.randint(low=0,high=self.GRID_SIZE,size=1)
-			py = np.random.randint(low=0,high=self.GRID_SIZE,size=1)
-			if (px == self.GRID_SIZE-1 and py == self.GRID_SIZE-1) or (px,py) in self.walls:
-				px = np.random.randint(low=0,high=self.GRID_SIZE,size=1)
-				py = np.random.randint(low=0,high=self.GRID_SIZE,size=1)
-			else:
-				tmp_p = True
+
+		px, py = 0, 0
 		self.grid[py,px] = player
 		self.ploc = [px,py]
 		
@@ -96,6 +90,7 @@ class gridenv(object):
 						self.grid[y,x] = wall
 		tmp_p = False
 		while(tmp_p!=True):
+			print "try"
 			px = np.random.randint(low=0,high=self.GRID_SIZE,size=1)
 			py = np.random.randint(low=0,high=self.GRID_SIZE,size=1)
 			if (px == self.GRID_SIZE-1 and py == self.GRID_SIZE-1) or (self.grid[py,px] == wall):
@@ -115,17 +110,17 @@ class gridenv(object):
 
 		if(action == 0): # 0 - move backward
 			if(state[1]!=0):
-				return (state[0],state[1]-1)
+				return (state[1]-1,state[0])
 		elif(action == 1): # 1 - move forward
 			if(state[1]!=self.GRID_SIZE-1):
-				return (state[0],state[1]+1)
+				return (state[1]+1,state[0])
 		elif(action == 2): # 2 - move left
 			if(state[0]!=0):
-				return (state[0]-1,state[1])
+				return (state[1],state[0]-1)
 		elif(action == 3): # 3 - move right
 			if(state[0]!=self.GRID_SIZE-1):
-				return (state[0]+1,state[1])
-		return (state[0],state[1])
+				return (state[1],state[0]+1)
+		return (state[1],state[0])
 
 
 	def frame_step(self,action):
@@ -172,7 +167,7 @@ class gridenv(object):
 
 		if prevValue == goal:  # if new player cell is goal
 			self.grid[self.ploc[1],self.ploc[0]] = 3
-			self.reward = 10
+			self.reward = 300
 			self.game_over = True
 		elif prevValue == safe and notAllowedLoc == 0:
 			self.grid[self.ploc[1],self.ploc[0]] = player
@@ -180,7 +175,7 @@ class gridenv(object):
 			self.game_over = False
 		elif prevValue == wall:
 			self.grid[self.ploc[1],self.ploc[0]] = wall
-			self.reward = -10
+			self.reward = -100
 			self.game_over = False
 			# reset player to same location
 			if tmp == 0:
@@ -202,7 +197,7 @@ class gridenv(object):
 			
 		if notAllowedLoc == 1:
 			self.grid[self.ploc[1],self.ploc[0]] = player
-			self.reward = -10 
+			self.reward = -100
 			self.game_over = False
 
 		self.frames[0:3,] = np.copy(self.frames[1:4,])

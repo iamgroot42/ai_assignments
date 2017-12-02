@@ -17,9 +17,19 @@ if __name__ == "__main__":
 
 	# Q-learning on first grid, test on first
 	ploc, x = env.initDeterministicgrid(1)
+	# v = valueIteration.ValueIteration(env, x, 0.5)
+	# v.runIterations()
+	# print v.run_agent(ploc, env)
 	q = Qlearning.Qlearning(env, x)
 	rewards = q.runIterations()
-	q.run_agent(ploc, env)
+	print "?"
+	env2.initProbalisticgrid(1)
+	print "done"
+	print q.run_agent(ploc, env2)
+
+
+
+	exit()
 
 	# Plot for first part
 	plt.plot(rewards)
@@ -31,7 +41,7 @@ if __name__ == "__main__":
 	# Q-learning on first grid, test on second
 	ploc, x = env.initDeterministicgrid(1)
 	ploc_, x_ = env2.initDeterministicgrid(2)
-	q = Qlearning.Qlearning(env x)
+	q = Qlearning.Qlearning(env, x)
 	rewards = q.runIterations()
 	q.run_agent(ploc_, env2)
 
